@@ -1,6 +1,6 @@
 {
-  "name": "prreport",
-  "description": "Project reporting UI",
+  "name": "laskereport",
+  "description": "UI for City of Helsinki financial reporting",
   "version": "0.0.1",
   "author": "Juha Yrjölä <juha.yrjola@iki.fi>",
   "dependencies": {
