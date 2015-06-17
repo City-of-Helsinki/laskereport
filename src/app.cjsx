@@ -4,12 +4,12 @@ conf =
 
     paths:
         app: 'scripts'
-        'react-bootstrap/lib': 'components/react-bootstrap/lib'
+        'react-bootstrap/lib': 'components/react-bootstrap'
 
 require.config conf
 
 _deps = [
-    'jquery', 'react-router', 'react', 'react-bootstrap', 'react-router-bootstrap',
+    'jquery', 'react-router', 'react', 'react-bootstrap',
     'react-loader'
 ]
 
@@ -19,7 +19,7 @@ format_date = (date) ->
     return arr.join '.'
 
 
-require _deps, ($, Router, React, RB, RBR, Loader) ->
+require _deps, ($, Router, React, RB, Loader) ->
     VoucherModal = React.createClass
         render: ->
             propNames = (propName for propName of @props when typeof @props[propName] not in ['object', 'function'])
@@ -125,11 +125,52 @@ require _deps, ($, Router, React, RB, RBR, Loader) ->
                 </Loader>
             </div>
 
+    ProfitCenterList = React.createClass
+        getInitialState: -> profitCenters: [], loaded: false
+        contextTypes:
+            router: React.PropTypes.func
+        componentDidMount: ->
+            console.log 'mount'
+            params = @context.router.getCurrentParams()
+            if params.pcId
+                filters = parent: params.pcId
+            else
+                filters = level: 2
+            filters.ordering = 'name'
+
+            ret = $.ajax
+                url: "#{appSettings.api_base}/profit_center_hierarchy/"
+                dataType: 'json'
+                data: filters
+                success: (data) =>
+                    @setState profitCenters: data.results, loaded: true
+
+        render: ->
+            pcList = @state.profitCenters
+            <div>
+                <Loader loaded={@state.loaded}>
+                    <h2>{pcList.length} tulosyksikköä</h2>
+                    <RB.ListGroup>
+                        {pcList.map (pc) ->
+                            <RB.ListGroupItem href={'#profit-center/' + pc.id} header=pc.id>
+                                <div className='pull-left'>{pc.name}</div>
+                                {if pc.child_count
+                                    <div className='pull-right'>{pc.child_count}</div>
+                                }
+                                <div className='clearfix'></div>
+                            </RB.ListGroupItem>    
+                        }
+                    </RB.ListGroup>
+                </Loader>
+            </div>
+
     App = React.createClass
         render: ->
             <div>
-                <RB.Navbar brand='Projektit'>
+                <RB.Navbar brand='Laske'>
                     <RB.Nav>
+                        <RB.NavItem href="/">Projektit</RB.NavItem>
+                        <RB.NavItem href="#profit-center/">Tulosyksiköt</RB.NavItem>
                     </RB.Nav>
                 </RB.Navbar>
                 <div className="container">
@@ -139,8 +180,9 @@ require _deps, ($, Router, React, RB, RBR, Loader) ->
 
     routes =
         <Router.Route name="app" path="/" handler={App}>
-            <Router.Route name="project/:projectId" handler={Project} />
-            <Router.DefaultRoute handler={ProjectList} />
+            <Router.Route name="project-details" path="project/:projectId" handler={Project} />
+            <Router.Route name="profit-center" path="profit-center/:pcId?" handler={ProfitCenterList} />
+            <Router.DefaultRoute name="project-list" handler={ProjectList} />
         </Router.Route>
 
     Router.run routes, (Handler) ->
