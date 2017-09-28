@@ -21,7 +21,13 @@
     "gulp-plumber": "^1.0.0",
     "gulp-util": "^3.0.4",
     "jade": "^1.9.2",
-    "js-yaml": "^3.2.7"
+    "js-yaml": "^3.2.7",
+    "snyk": "^1.41.1"
   },
-  "license": "MIT"
+  "license": "MIT",
+  "scripts": {
+    "snyk-protect": "snyk protect",
+    "prepublish": "npm run snyk-protect"
+  },
+  "snyk": true
 }
